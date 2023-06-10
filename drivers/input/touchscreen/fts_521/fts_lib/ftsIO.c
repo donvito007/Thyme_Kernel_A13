@@ -103,11 +103,19 @@ int changeSAD(u8 sad)
 */
 struct device *getDev(void);
 {
-	if (client != NULL)
-		return &(getClient()->dev);
-	else
-		return NULL;
+  struct i2c_client *client;
+
+  // Get the I2C client.
+  client = i2c_get_clientdata(i2c_client_adapter);
+
+  // Check if the client is NULL.
+  if (client == NULL)
+    return NULL;
+
+  // Return the device pointer.
+  return &client->dev;
 }
+
 
 #ifdef I2C_INTERFACE
 /**
