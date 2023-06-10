@@ -149,8 +149,9 @@ $(filter-out _all sub-make $(CURDIR)/Makefile, $(MAKECMDGOALS)) _all: sub-make
 	@:
 
 # Invoke a second make in the output directory, passing relevant variables
+KBUILD_SRC := $(CURDIR)
 sub-make:
-	$(Q)$(MAKE) -C $(KBUILD_OUTPUT) KBUILD_SRC=$(CURDIR) \
+	$(Q)$(MAKE) -f $(CURDIR)/Makefile
 	-f $(CURDIR)/Makefile $(filter-out _all,$(MAKECMDGOALS))
 
 # Leave processing to above invocation of make
@@ -1199,18 +1200,14 @@ $(sort $(vmlinux-deps)): $(vmlinux-dirs) ;
 # make menuconfig etc.
 # Error messages still appears in the original language
 
-PHONY += $(vmlinux-dirs)
-$(vmlinux-dirs): prepare scripts
-	$(Q)$(MAKE) $(build)=$@ need-builtin=1 need-modorder=1
-
-define filechk_kernel.release
-	echo "$(KERNELVERSION)$$($(CONFIG_SHELL) $(srctree)/scripts/setlocalversion \
-		$(srctree) $(BRANCH) $(KMI_GENERATION))"
-endef
+# Build the kernel modules
+$(vmlinux-dirs):
+	$(Q)$(MAKE) -C $(srctree) M=$(CURDIR) modules
 
 # Store (new) KERNELRELEASE string in include/config/kernel.release
 include/config/kernel.release: $(srctree)/Makefile FORCE
-	$(call filechk,kernel.release)
+	echo "$(KERNELVERSION)" > $@
+
 
 # Additional helpers built in scripts/
 # Carefully list dependencies so we do not try to build scripts twice
